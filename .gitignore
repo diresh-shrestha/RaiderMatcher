@@ -1,7 +1,3 @@
+**/node_modules
 CourseTests.js
 StudentTests.js
-
-**/node_modules
-*.txt
-
-
