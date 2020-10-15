@@ -1,5 +1,7 @@
+CourseTests.js
+StudentTests.js
+
 **/node_modules
 *.txt
-.CourseTests.js
-.StudentTests.js
+
 
