@@ -1,3 +1,7 @@
+# RaiderMatcher
+A discord bot for college students 
+
+
 RaiderMatcherDB Quick Start Guide
 ============
 <!-- NOTE: This is a work in progress and you may get double outputs sometimes and stuff but it works -->
