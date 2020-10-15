@@ -10,7 +10,9 @@ RaiderMatcherDB Quick Start Guide
 <!-- STARTING MongoDB for mongoose (MUST DO THIS BEFORE ACCESSING DATABASE) -->
 <!-- You can look this up or put this in command line: -->
 npm init
-npm install mongodb --save
+<!-- Follow the installation process for Community Edition -->
+<!-- https://docs.mongodb.com/manual/installation/ -->
+
 npm install mongoose
 mongod    // Run this once before accessing database or functions and it will work until ctrl + c
 <<ctrl+c to exit>>
