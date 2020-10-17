@@ -20,19 +20,21 @@
    * studentsCreate({studentsCreate({ name: "Big Mac", classification: "Sophomore", major: "Business", adminStatus: true});
    */
   const studentsCreate = async function({
-    name,
+    studentTag,
+    name="",
     classification="",
     major="",
     adminStatus=false,
     courses=[],
   } = {}) {
-
-      if (!name) {
-        return "Error - Name must be included when using studentsCreate." +
+      
+      if (!studentTag) {
+        return "Error - studentTag must be included when using studentsCreate." +
         " Also, make sure proper types passed for student attrubutes.";
       }
 
       return await Student.create({
+          studentTag: studentTag,
           name: name,
           classification: classification,
           major: major,
@@ -96,10 +98,10 @@
    * @example printing a student
    * studentsReadOne("5f83a43e34c3da04908d4d89").then(student => console.log(student));
    */
-  const studentsReadOne = function(studentId) {
-    if (mongoose.Types.ObjectId.isValid(studentId)) {
+  const studentsReadOne = function(studentTag) {
+    if (studentTag) {
       return Student
-        .findById(mongoose.Types.ObjectId(studentId))
+        .findOne({ studentTag: studentTag})
         .populate({
           path:"courses",
           model:"Course"
@@ -107,14 +109,14 @@
         .exec()
         .then(function(foundStudent) {
           if (!foundStudent) {
-            console.log("Error - Cannot find student with id: " + studentId);
-            return "Error - Cannot find student with id: " + studentId;
+            console.log("Error - Cannot find student with tag: " + studentTag);
+            return null;
           } else {
             return foundStudent;
           }
         });
     } else {
-      console.log("Error - Proper Id not passed to studentsReadOne. Returned -1");
+      console.log("Error - Student Tag must be included in studentsReadOne arguments. Returned -1");
       return -1;
     }
   };
@@ -145,22 +147,22 @@
    *
    */
   const studentsUpdateOne = function({
-    studentId,
+    studentTag,
     newStudentName="",
     newStudentClassification="",
     newStudentMajor="",
     toggleAdminStatus=false,
     deleteCourses=false,
-    courseToRemoveId=null,
-    courseToAddId=null,
+    courseToRemoveId="",
+    courseToAddId="",
   } = {}) {
-    if (!mongoose.Types.ObjectId.isValid(studentId)) {
-      console.log("Error - Invalid Student ID passed to studentsUpdateOne");
+    if (!studentTag) {
+      console.log("Error - Student Tag must be passed to studentsUpdateOne");
       return;
     }
 
     Student
-      .findById(mongoose.Types.ObjectId(studentId))
+      .findOne( {studentTag: studentTag } )
       .exec((err, foundStudent) => {
         if (!foundStudent) {
           console.log("Student does not exist. Cannot update.");
@@ -182,8 +184,10 @@
         if (toggleAdminStatus)
           foundStudent.adminStatus = !foundStudent.adminStatus;
 
-        if (deleteCourses)
+        if (deleteCourses) {
           foundStudent.courses = [];
+        }
+
 
         if (courseToRemoveId) {
           try {
@@ -194,7 +198,7 @@
           }
         }
 
-        if (courseToAddId) {
+        if (mongoose.Types.ObjectId.isValid(courseToAddId)) {
           try {
             foundStudent.courses.push({ _id: mongoose.Types.ObjectId(courseToAddId) });
             // foundStudent.courses.push(courseToAddId);

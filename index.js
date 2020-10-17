@@ -1,3 +1,5 @@
+// jshint esversion: 8
+
 const fs = require("fs");
 const Discord = require("discord.js");
 const { prefix, BOT_TOKEN } = require("./config.json");
@@ -16,8 +18,8 @@ for (const file of commandFiles) {
   bot.commands.set(command.name, command);
 }
 /* // Database control
-const ctrlCourse = require('./controllers/course');    
-const ctrlStudent = require('./controllers/student');   
+const ctrlCourse = require('./controllers/course');
+const ctrlStudent = require('./controllers/student');
 
 const Course = require('./models/Course');
 const Student = require('./models/Student');
@@ -109,24 +111,24 @@ bot.on("message", (message) => {
 
 bot.login(BOT_TOKEN);
 
-/* bot.on('guildMemberAdd', member => {
+bot.on('guildMemberAdd', member => {
   studentsCreate({name: member.username}).then((createdStudent) => {
     const createdStudentId = String(createdStudent._id);
-    console.log("Student successfully added!"); 
-    studentsReadOne(createdStudentId).then(response => console.log(response));   
-  })
+    console.log("Student successfully added!");
+    studentsReadOne(createdStudentId).then(response => console.log(response));
+  });
   // Send the message to a designated channel on a server:
   const channel = member.guild.channels.name;
   // Do nothing if the channel wasn't found on this server
   // Send the message, mentioning the member
   channel.send(`Welcome to the server, ${member}`);
-}); */
+});
 
 /* bot.registerCommand('addMajor', (msg, args) => {
-  
+
 }) */
 
-/* 
+/*
 const init_courses = () => {
   coursesCreate('CS 4352', 'Operating Systems');
   coursesCreate('CS 4354', 'Concepts of Database System');

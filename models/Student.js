@@ -5,8 +5,12 @@ const beautifyUnique = require('mongoose-beautiful-unique-validation');
 // Student Schema
 const studentSchema = new mongoose.Schema({
   // _id: mongoose.Schema.Types.ObjectId,
-  name: {
+  studentTag: {
+    type: String,
     required: true,
+    unique: "Student has already joined server"
+  },
+  name: {
     type: String,
     lowercase: true
   },

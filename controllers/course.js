@@ -16,7 +16,12 @@
  * @example creates and prints the course object after creation to console
  * coursesCreate({ name: "CS 1400" }).then(createdCourse => console.log(createdCoursse));
  */
-  const coursesCreate = async function(course, courseName="", books=[], students=[]) {
+  const coursesCreate = async function({
+    course,
+    courseName="",
+    books=[],
+    students=[]
+  }={}) {
     if (course) { // course validity check (this could be done before passing as well)
       return await Course.create({
         course: course,
@@ -118,8 +123,8 @@
       .exec()
       .then(function(foundCourse) {
         if (!foundCourse) {
-          console.log("Error - Cannot find course with that id or name.");
-          return "Error - Cannot find course with that id or name.";
+          console.log("Cannot find course with that id or name.");
+          return null;
         } else {
           return foundCourse;
         }
@@ -136,8 +141,8 @@
    * @param  {String}  [newCourseValue=""]     OPTIONAL
    * @param  {String}  [newCourseName=""]      OPTIONAL
    * @param  {Boolean} [deleteStudents=false]  OPTIONAL - Deletes all students when true
-   * @param  {String}  [studentToRemoveId=""]  OPTIONAL
-   * @param  {String}  [studentToAddId=""]   OPTIONAL - Should be valid Student object
+   * @param  {String}  [studentToRemoveTag=""]  OPTIONAL
+   * @param  {String}  [studentToAddTag=""]   OPTIONAL - Should be valid Student object
    * @return {Number}                          Returns 0 if success, -1 for err.
    *
    * @example
@@ -145,26 +150,26 @@
    *   new_student_one.save();
    *
    *   // Adding new student to course
-   *   coursesUpdateOne({courseId: '5f83665c4f4d4d03b19dab14', studentToAddId: String(new_student_one._id});
-   * 
+   *   coursesUpdateOne({courseId: '5f83665c4f4d4d03b19dab14', studentToAddTag: String(new_student_one._id});
+   *
    * @example
    *   // Changing course value to "CS 1472", changing or adding courseName "Algo"
    *   coursesUpdateOne({courseId: '5f83665c4f4d4d03b19dab14', newCourseValue: "CS 1472", newCourseName: "Algo"});
    *
    */
   const coursesUpdateOne = async function({
-    courseId,
+    course,
     newCourseValue="",
     newCourseName="",
     deleteStudents=false,
-    studentToRemoveId="",
+    studentToRemoveTag="",
     studentToAddId="",
   } = {}) {
-    if (!mongoose.Types.ObjectId.isValid(courseId)) {  // course validity function here
-      return "Error - Course ID not valid passed to coursesUpdateOne";
+    if (!course) {  // course validity function here
+      return "Error - Course must be passed to coursesUpdateOne";
     }
     Course
-      .findById(mongoose.Types.ObjectId(courseId), function(err, foundCourse) {
+      .findOne({ course: course }, function(err, foundCourse) {
         if (!foundCourse) {
           console.log("Course does not exist. Cannot update.");
           return -1;
@@ -172,6 +177,7 @@
           console.log(err);
           return -1;
         } else {
+          console.log(foundCourse.students);
           if (newCourseValue)
             foundCourse.course = newCourseValue;
 
@@ -181,16 +187,16 @@
           if (deleteStudents)
             foundCourse.students = [];
 
-          if (studentToRemoveId) {
+          if (studentToRemoveTag) {
             try {
-              foundCourse.students.pull({ _id: mongoose.Types.ObjectId(studentToRemoveId) });
+              // foundCourse.students.pull({ studentTag: mongoose.Types.ObjectId(studentToRemoveTag) });
             } catch (err) {
               console.log("Error removing student from course - Make sure string of student id passed and valid id");
               return -1;
             }
           }
 
-          if (studentToAddId) {
+          if (mongoose.Types.ObjectId.isValid(studentToAddId)) {
             try {
               foundCourse.students.push(mongoose.Types.ObjectId(studentToAddId));
             } catch (err) {
