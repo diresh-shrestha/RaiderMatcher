@@ -5,18 +5,22 @@ const beautifyUnique = require('mongoose-beautiful-unique-validation');
 // Student Schema
 const studentSchema = new mongoose.Schema({
   // _id: mongoose.Schema.Types.ObjectId,
-  name: {
-    required: true,
+  studentTag: {
     type: String,
-    lowercase: true
+    required: true,
+    unique: 'Student has already joined server',
+  },
+  name: {
+    type: String,
+    lowercase: true,
   },
   classification: String,
   major: String,
   adminStatus: {
     type: Boolean,
-    default: false
+    default: false,
   },
-  courses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course'}]
+  courses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course' }],
 });
 
 // Student Model

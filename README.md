@@ -1,5 +1,5 @@
 # RaiderMatcher
-A discord bot for college students 
+A discord bot for college students that stores students information in a database and helps them find classmates and look for teams for projects.  
 
 
 RaiderMatcherDB Quick Start Guide
