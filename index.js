@@ -1,15 +1,17 @@
 // jshint esversion: 8
 
-const fs = require("fs");
-const Discord = require("discord.js");
-const { prefix, BOT_TOKEN } = require("./config.json");
-require("./models/db");
+const fs = require('fs');
+const Discord = require('discord.js');
+const { prefix, BOT_TOKEN } = require('./config.json');
+require('./models/db');
+
 const bot = new Discord.Client();
 
 bot.commands = new Discord.Collection();
 const commandFiles = fs
-  .readdirSync("./commands")
-  .filter((file) => file.endsWith(".js"));
+  .readdirSync('./commands')
+  .filter((file) => file.endsWith('.js'));
+
 const cooldowns = new Discord.Collection();
 // dynamically retrieve all command files
 for (const file of commandFiles) {
@@ -17,6 +19,7 @@ for (const file of commandFiles) {
 
   bot.commands.set(command.name, command);
 }
+
 /* // Database control
 const ctrlCourse = require('./controllers/course');
 const ctrlStudent = require('./controllers/student');
@@ -40,11 +43,11 @@ const studentsDeleteOne = ctrlStudent.studentsDeleteOne;
 
  */
 
-bot.once("ready", () => {
-  console.log("Ready!");
+bot.once('ready', () => {
+  console.log('Ready!');
 });
 
-bot.on("message", (message) => {
+bot.on('message', (message) => {
   if (!message.content.startsWith(prefix) || message.author.bot) return;
 
   const args = message.content.slice(prefix.length).trim().split(/ +/);
@@ -59,14 +62,18 @@ bot.on("message", (message) => {
     );
   if (!command) return;
 
-  if (command.guildOnly && message.channel.type === "dm") {
+  if (command.guildOnly && message.channel.type === 'dm') {
     return message.reply("I can't execute that command inside DMs!");
   }
 
   if (command.args && !args.length) {
-    return message.channel.send(
-      `You didn't provide any arguments, ${message.author}!`
-    );
+    let reply = `You didn't provide any arguments, ${message.author}!`;
+
+    if (command.usage) {
+      reply += `\nThe proper usage would be: \`${prefix}${command.name} ${command.usage}\``;
+    }
+
+    return message.channel.send(reply);
   }
   // check if the cooldowens collections has the command set in it yuet.
   // if not, then add it
@@ -83,7 +90,7 @@ bot.on("message", (message) => {
   if (timestamps.has(message.author.id)) {
     // since the timestamps Collection has the author ID in it, you .get() it
     // and then sum it up with the cooldownAmount variable, in order to get
-    // the correct expiration timestamp.
+    // the correct expiration timestamp.'
     const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
     // check to see if it's actually expired
     if (now < expirationTime) {
@@ -105,24 +112,24 @@ bot.on("message", (message) => {
     command.execute(message, args);
   } catch (err) {
     console.error(err);
-    message.reply("There was an error trying to execute that command!");
+    message.reply('There was an error trying to execute that command!');
   }
 });
 
 bot.login(BOT_TOKEN);
 
-bot.on('guildMemberAdd', member => {
-  studentsCreate({name: member.username}).then((createdStudent) => {
+/* bot.on("guildMemberAdd", (member) => {
+  studentsCreate({ name: member.username }).then((createdStudent) => {
     const createdStudentId = String(createdStudent._id);
     console.log("Student successfully added!");
-    studentsReadOne(createdStudentId).then(response => console.log(response));
+    studentsReadOne(createdStudentId).then((response) => console.log(response));
   });
   // Send the message to a designated channel on a server:
   const channel = member.guild.channels.name;
   // Do nothing if the channel wasn't found on this server
   // Send the message, mentioning the member
   channel.send(`Welcome to the server, ${member}`);
-});
+}); */
 
 /* bot.registerCommand('addMajor', (msg, args) => {
 
@@ -139,4 +146,4 @@ const init_courses = () => {
 init_courses();
  */
 
-//bot.connect();
+// bot.connect();

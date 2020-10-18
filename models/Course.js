@@ -18,18 +18,17 @@ const courseSchema = new mongoose.Schema({
     type: String,
     uppercase: true,
     required: true,
-    unique: "Course already exists"
+    unique: 'Course already exists',
   },
   courseName: {
     type: String,
   },
-  books: [String],  // This can make things complicated in coursesUpdateOne()
-  students: [{ type: mongoose.Schema.Types.ObjectId , ref: 'Student' }]
+  books: [String], // This can make things complicated in coursesUpdateOne()
+  students: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Student' }],
 });
 
 // Course Model
 // courseSchema.plugin(beautifyUnique);
 const Course = mongoose.model('Course', courseSchema);
-
 
 module.exports = Course;

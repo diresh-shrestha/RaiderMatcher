@@ -8,19 +8,19 @@ const studentSchema = new mongoose.Schema({
   studentTag: {
     type: String,
     required: true,
-    unique: "Student has already joined server"
+    unique: 'Student has already joined server',
   },
   name: {
     type: String,
-    lowercase: true
+    lowercase: true,
   },
   classification: String,
   major: String,
   adminStatus: {
     type: Boolean,
-    default: false
+    default: false,
   },
-  courses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course'}]
+  courses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course' }],
 });
 
 // Student Model
