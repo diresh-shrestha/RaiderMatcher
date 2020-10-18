@@ -20,34 +20,28 @@ for (const file of commandFiles) {
   bot.commands.set(command.name, command);
 }
 
-/* // Database control
-const ctrlCourse = require('./controllers/course');
-const ctrlStudent = require('./controllers/student');
-
-const Course = require('./models/Course');
-const Student = require('./models/Student');
-
-const coursesCreate = ctrlCourse.coursesCreate;
-const coursesReadAll = ctrlCourse.coursesReadAll;
-const coursesDeleteAll = ctrlCourse.coursesDeleteAll;
-const coursesReadOne = ctrlCourse.coursesReadOne;
-const coursesUpdateOne = ctrlCourse.coursesUpdateOne;
-const coursesDeleteOne = ctrlCourse.coursesDeleteOne;
-
-const studentsCreate = ctrlStudent.studentsCreate;
-const studentsReadAll = ctrlStudent.studentsReadAll;
-const studentsDeleteAll = ctrlStudent.studentsDeleteAll;
-const studentsReadOne = ctrlStudent.studentsReadOne;
-const studentsUpdateOne = ctrlStudent.studentsUpdateOne;
-const studentsDeleteOne = ctrlStudent.studentsDeleteOne;
-
- */
-
 bot.once('ready', () => {
   console.log('Ready!');
 });
 
 bot.on('message', (message) => {
+  if (!message.guild.channels.cache.find((c) => c.name === 'Courses')) {
+    //checks if there in an item in the channels collection that corresponds with the supplied parameters, returns a boolean
+    message.guild.channels
+      .create('Courses', {
+        type: 'category',
+        permissionsOverwrites: [
+          {
+            id: message.guild.id,
+            deny: ['MANAGE_MESSAGES'],
+            allow: ['SEND_MESSAGES'],
+          },
+        ],
+      })
+      .then((channel) => {
+        // console.log(channel);
+      });
+  }
   if (!message.content.startsWith(prefix) || message.author.bot) return;
 
   const args = message.content.slice(prefix.length).trim().split(/ +/);
