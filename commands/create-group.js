@@ -4,7 +4,7 @@ module.exports = {
   name: 'create-group',
   description: "Creates a group from supplied tags",
   aliases: ['creategroup', 'createGroup', 'CreateGroup'],
-  usage: 'DiscordTag1 DiscordTag2',
+  usage: '@DiscordTag1 @DiscordTag2',
   args: true,
   execute(message, args) {
   	var channelName = message.author.username.substring(0, 3);
