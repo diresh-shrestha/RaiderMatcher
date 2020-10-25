@@ -18,18 +18,52 @@ module.exports = {
   args: true,
   execute(message, args) {
     const course = args.join(' ');
+    const channel = `${args[0]}-${args[1]}`;
     const studentTag = message.member.user.tag;
+    // get the Courses channel category
+    const category = message.guild.channels.cache.find(
+      (c) => c.name === 'Courses'
+    );
+    // if the category doesn't exist, throw error
+    if (!category) throw new Error('Category channel does not exist');
 
+    // if the channel already doesn't exist
+    if (
+      !message.guild.channels.cache.find(
+        (c) => c.name === channel.toLowerCase()
+      )
+    ) {
+      // create a text channel with the name of the course
+      message.guild.channels.create(course, 'text').then((createdChannel) => {
+        // inside the Courses category
+        createdChannel.setParent(category.id);
+        console.log(`${channel} created inside the ${category} category`);
+      });
+    } else {
+      // if the channel already exists, don't create a new channel
+      console.log(`${channel} already exists`);
+    }
+
+    /* guild.channels
+      .create(course, {
+        type: 'text',
+      })
+      .then((channel) => {
+        console.log(channel);
+      }); */
     // Save this student once to test
     // studentsCreate( {studentTag: studentTag} ).then((createdStudent) => {
     //   console.log(createdStudent);
     // });
 
-    message.channel.send(`You wrote the course ${course}`);
+    message.channel.send(
+      `You wrote the course ${course}\n${course} has been added! `
+    );
 
     studentsReadOne(studentTag).then((foundStudent) => {
       coursesReadOne({ course })
         .then((foundCourse) => {
+          // const role = message.guild.roles.find(role => role.name === foundCourse.courseName);
           if (!foundCourse) {
             coursesCreate({ course })
               .then((createdCourse) => {
@@ -65,70 +99,5 @@ module.exports = {
           console.log(err);
         });
     });
-
-    /* new_course.save( (err) => {
-            if (err) {
-                console.log("error saving this test course: ");
-                console.log(err);
-              } else {
-                studentsReadAll().then((response) => {
-                    response.forEach((item) => {
-                        if (item.name === userName) {
-                            studentsUpdateOne({studentId: item._id, courseToAddId: new_course._id});
-
-                        }
-                    })
-                })
-            } */
-
-    // coursesReadOne({course: courseName}).then(foundCourse => {
-    //     console.log(foundCourse.students);
-    // });
   },
 };
-
-/* studentsReadAll().then((response) => {
-                response.forEach((item) => {
-                    if (item.name === userName) {
-                        studentsUpdateOne({studentId: item._id, courseToAdd: foundCourse._id});
-
-                    }
-                })
-            });
-        */
-/* coursesReadOne({course: courseName}).then(foundCourse => {
-            studentsReadAll().then((response) => {
-                response.forEach((item) => {
-                    if (item.name === userName) {
-                        studentsUpdateOne({studentId: item._id, courseToAdd: foundCourse._id});
-
-                    }
-                })
-            });
-        }); */
-/*
-        const studentId = studentsReadAll().then((response) => {
-            response.forEach((item) => {
-                if (item.name === userName.toLowerCase()) {
-                    return item._id;
-                }
-            })
-        }
-         */
-/* coursesReadAll().then((response) => {
-            response.forEach((c) => {
-                if (c.course === courseName) {
-                    console.log(c.course);
-                     const cId = String(c._id);
-                     console.log(cId);
-                }
-            })
-        }) */
-
-/* coursesUpdateOne({courseId: cId, studentToAddId: sId}); */
-// coursesReadAll().then(response => console.log(response));
-// studentsReadAll().then(response => console.log(response));
-
-/*     })
-    }
-}; */
