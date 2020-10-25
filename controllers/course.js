@@ -2,6 +2,7 @@
 
 const mongoose = require('mongoose');
 const Course = require('../models/Course');
+const { studentsReadOne } = require('./student');
 
 /**
  * The coursesCreate function will create a single course in raiderMatcher DB.
@@ -9,29 +10,33 @@ const Course = require('../models/Course');
  * error is returned.
  * @param  {String} course          The course. Ex) "CS 1400" (REQUIRED)
  * @param  {String} [courseName=""] The course name. Ex) "Intro to Algorithms" (OPTIONAL)
- * @param  {Array}  [books=[]]      Array of course textbooks. Ex) ["Book 3rd Edition"] (OPTIONAL)
  * @param  {Array}  [students=[]]   Array of students. (OPTIONAL)
  * @return {Course Object}          It will return the created course. (OPTIONAL)
  *
  * @example creates and prints the course object after creation to console
- * coursesCreate({ name: "CS 1400" }).then(createdCourse => console.log(createdCoursse));
+ * coursesCreate({ course: "CS 1400" }).then(createdCourse => console.log(createdCoursse));
  */
 const coursesCreate = async function ({
   course,
   courseName = '',
-  books = [],
   students = [],
 } = {}) {
   if (course) {
-    // course validity check (this could be done before passing as well)
-    return await Course.create({
-      course: course,
-      courseName: courseName,
-      books: books,
-      students: students,
-    });
+    course = course.toUpperCase();
+    try {
+      return await Course.create({
+        course,
+        courseName,
+        students,
+      });
+    } catch (err) {
+      console.log('Error in coursesCreate. Most likely Duplicated course');
+      // console.log(err);
+      return -1;
+    }
   } else {
-    return 'Course parameter not entered';
+    console.log('Course parameter not entered in coursesCreate');
+    return -1;
   }
 };
 
@@ -47,13 +52,11 @@ const coursesReadAll = async function () {
     .then((foundCourses) => {
       if (!foundCourses) {
         return 'No courses in collection';
-      } else {
-        return foundCourses;
       }
+      return foundCourses;
     })
     .catch((err) => {
       console.log(err);
-      return;
     });
 };
 
@@ -62,48 +65,36 @@ const coursesReadAll = async function () {
  * @return {null}
  */
 const coursesDeleteAll = function () {
-  return Course.remove({}, function (err) {
+  return Course.deleteMany({}, function (err) {
     if (err) {
       return err;
-    } else {
-      console.log('All courses deleted.');
-      return null;
     }
+    console.log('All courses deleted.');
+    return null;
   });
 };
 
 /**
- * This function will return a single course in courses collection. It takes either
- * the courseId or the course (Ex: "CS 1400") but NOT both.
+ * This function, given the course, will return the course object.
  *
- * @param  {String} [courseId=""] The courseId. Ex) "5f82868fb49d7a7d6b627f11"
- * @param  {String} [course=""]   The course. Ex) "CS 1400"
+ * @param  {String} [course]      The course. Ex) "CS 1400"
  * @return {Course}               Returns a course object.
  *
  * @example
- * coursesReadOne({ courseId: '5f83665c4f4d4d03b19dab13' }).then(foundCourse => console.log(foundCourse));
+ * coursesReadOne(course).then(foundCourse => console.log(foundCourse));
  * // Prints the found course
  *
  * @example
- * coursesReadOne({ course: 'CS 1400' }).then(foundCourse => sendResponseToUI(response));
+ * coursesReadOne(course).then(foundCourse => sendResponseToUI(response));
  * // Found course is passed to some other written function "sendResponseToUI"
  */
-const coursesReadOne = function ({ courseId = '', course = '' } = {}) {
-  if (!courseId && !course) {
-    console.log('ERROR - Must provide courseId or course to read course');
-    return 'ERROR - Must provide courseId or course to read course';
-  } else if (courseId && course) {
-    console.log('ERROR - Must pass courseId OR course, but not both');
-    return 'ERROR - Must pass courseId OR course, but not both';
+const coursesReadOne = function (course) {
+  if (!course) {
+    console.log('Error - Must pass course in coursesReadOne');
+    return -1;
   }
 
-  if (courseId && !mongoose.Types.ObjectId.isValid(courseId)) {
-    console.log('Error - Course ID is not of valid format');
-  }
-
-  let conditions;
-  if (courseId) conditions = { _id: mongoose.Types.ObjectId(courseId) };
-  else conditions = { course: course.toUpperCase() };
+  const conditions = { course: course.toUpperCase() };
 
   return (
     Course.findOne(conditions)
@@ -115,22 +106,21 @@ const coursesReadOne = function ({ courseId = '', course = '' } = {}) {
       .exec()
       .then(function (foundCourse) {
         if (!foundCourse) {
-          console.log('Cannot find course with that id or name.');
+          console.log('Cannot find course in coursesReadOne.');
           return null;
-        } else {
-          return foundCourse;
         }
+        return foundCourse;
       })
   );
 };
 
 /**
- * The coursesUpdateOne function updates a single course given the courses id.
+ * The coursesUpdateOne function updates a single course given the course.
  * It can rename course and/or courseName, it can delete students from course,
  * it can delete single student from course given student id, or it can add student
  * given a student name. The function will print the error if error, updated
  * course if success.
- * @param  {String}  courseId                REQUIRED
+ * @param  {String}  course                  REQUIRED
  * @param  {String}  [newCourseValue=""]     OPTIONAL
  * @param  {String}  [newCourseName=""]      OPTIONAL
  * @param  {Boolean} [deleteStudents=false]  OPTIONAL - Deletes all students when true
@@ -139,15 +129,13 @@ const coursesReadOne = function ({ courseId = '', course = '' } = {}) {
  * @return {Number}                          Returns 0 if success, -1 for err.
  *
  * @example
- *   const new_student_one = Student({ name: "John Doe" });
- *   new_student_one.save();
  *
  *   // Adding new student to course
- *   coursesUpdateOne({courseId: '5f83665c4f4d4d03b19dab14', studentToAddTag: String(new_student_one._id});
+ *   coursesUpdateOne({ course: "CS 1400", studentToAddTag: "DogSniffer#0021" });
  *
  * @example
  *   // Changing course value to "CS 1472", changing or adding courseName "Algo"
- *   coursesUpdateOne({courseId: '5f83665c4f4d4d03b19dab14', newCourseValue: "CS 1472", newCourseName: "Algo"});
+ *   coursesUpdateOne({ course: "CS 1400", newCourseValue: "CS 1472", newCourseName: "Algo"});
  *
  */
 const coursesUpdateOne = async function ({
@@ -156,54 +144,80 @@ const coursesUpdateOne = async function ({
   newCourseName = '',
   deleteStudents = false,
   studentToRemoveTag = '',
-  studentToAddId = '',
+  studentToAddTag = '',
 } = {}) {
   if (!course) {
     // course validity function here
+    console.log('Error - Course must be passed to coursesUpdateOne');
     return 'Error - Course must be passed to coursesUpdateOne';
   }
-  Course.findOne({ course: course }, function (err, foundCourse) {
+  Course.findOne({ course }, function (err, foundCourse) {
     if (!foundCourse) {
       console.log('Course does not exist. Cannot update.');
       return -1;
-    } else if (err) {
+    }
+    if (err) {
       console.log(err);
       return -1;
-    } else {
-      console.log(foundCourse.students);
-      if (newCourseValue) foundCourse.course = newCourseValue;
+    }
+    if (newCourseValue) foundCourse.course = newCourseValue;
 
-      if (newCourseName) foundCourse.courseName = newCourseName;
+    if (newCourseName) foundCourse.courseName = newCourseName;
 
-      if (deleteStudents) foundCourse.students = [];
+    if (deleteStudents) foundCourse.students = [];
 
-      if (studentToRemoveTag) {
-        try {
-          // foundCourse.students.pull({ studentTag: mongoose.Types.ObjectId(studentToRemoveTag) });
-        } catch (err) {
-          console.log(
-            'Error removing student from course - Make sure string of student id passed and valid id'
-          );
-          return -1;
-        }
+    if (studentToRemoveTag) {
+      try {
+        studentsReadOne(studentToRemoveTag).then((foundStudent) => {
+          foundCourse.students.pull({ _id: foundStudent._id });
+
+          // Save
+          foundCourse.save((err, updatedCourse) => {
+            if (err) {
+              console.log(err);
+              return -1;
+            }
+            console.log('Removed Student: (if student existed in array)');
+            console.log(updatedCourse);
+          });
+        });
+      } catch (err) {
+        console.log(
+          "Error removing student from a course's students in coursesUpdateOne"
+        );
+        console.log(err);
+        return -1;
       }
+    }
 
-      if (mongoose.Types.ObjectId.isValid(studentToAddId)) {
-        try {
-          foundCourse.students.push(mongoose.Types.ObjectId(studentToAddId));
-        } catch (err) {
-          console.log("Error - student id probably wasn't valid");
-          return -1;
+    if (studentToAddTag) {
+      // find this student in DB and then pass id to push
+      studentsReadOne(studentToAddTag).then((foundStudent) => {
+        if (foundStudent) {
+          foundCourse.students.addToSet(foundStudent._id);
+        } else {
+          console.log(`Student does not  exist: ${studentToAddTag}`);
         }
-      }
+        // Save after pushing student
+        foundCourse.save((err, updatedCourse) => {
+          if (err) {
+            console.log(err);
+            return -1;
+          }
+          console.log('Added Student (if not already there): ');
+          console.log(updatedCourse);
+        });
+      });
+    }
 
+    if (!studentToRemoveTag && !studentToAddTag) {
+      // If no changes to students array being made, save course here
       foundCourse.save((err, updatedCourse) => {
         if (err) {
           console.log(err);
           return -1;
-        } else {
-          console.log(updatedCourse);
         }
+        console.log(updatedCourse);
       });
     }
   });
@@ -212,26 +226,28 @@ const coursesUpdateOne = async function ({
 };
 
 /**
- * Deletes a single course given course id.
- * @param  {String} courseId  REQUIRED
+ * Deletes a single course given course. If courses doesn't exist, nothing
+ * will happen exist a "Course Deleted" message will appear on console.
+ * @param  {String} course  REQUIRED
  * @return {null}
  */
-const coursesDeleteOne = function (courseId) {
-  if (mongoose.Types.ObjectId.isValid(courseId)) {
-    // course validity check
-    Course.findByIdAndRemove(mongoose.Types.ObjectId(courseId)).exec(
-      (err, foundCourse) => {
-        if (err) {
-          console.log(err);
-        } else if (!foundCourse) {
-          console.log("Error - Course ID doesn't exist in coursesDeleteOne");
-        } else {
-          return null;
-        }
+const coursesDeleteOne = function (course) {
+  if (course) {
+    Course.deleteOne({ course }).exec((err, deletedCourse) => {
+      if (err) {
+        console.log(err);
+      } else if (!deletedCourse) {
+        // This doesn't work because
+        console.log(
+          "Error - Course doesn't exist so can't delete in coursesDeleteOne"
+        );
+      } else {
+        console.log('Course Deleted');
+        return null;
       }
-    );
+    });
   } else {
-    console.log("Error - Course ID isn't of valid form in coursesDeleteOne");
+    console.log("Error - Course isn't passed in coursesDeleteOne");
   }
 };
 

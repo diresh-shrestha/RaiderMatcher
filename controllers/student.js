@@ -2,11 +2,13 @@
 
 const mongoose = require('mongoose');
 const Student = require('../models/Student');
+// const { coursesReadOne } = require("./course");
 
 /**
- * Creates a student object. Student name is required but all else optional.
- * Function will return created student object.
- * @param  {String}  name                REQUIRED
+ * Creates a student object. Student Tag from discord is required but all
+ * else optional. Function will return created student object.
+ * @param  {String}  studentTag          REQUIRED - Student's discord tag
+ * @param  {String}  name                optional
  * @param  {String}  [classification=""] OPTIONAL
  * @param  {String}  [major=""]          OPTIONAL
  * @param  {Boolean} [adminStatus=false] OPTIONAL
@@ -14,10 +16,11 @@ const Student = require('../models/Student');
  * @return {Student Object}              Created student object returned
  *
  * @example creates and prints the student object after creation to console
- * studentsCreate({ name: "John Doe" }).then(createdStudent => console.log(createdStudent));
+ * const studentDiscordTag = message.member.user.tag;
+ * studentsCreate({ studentTag: studentDiscordTag }).then(createdStudent => console.log(createdStudent));
  *
- * @example creates student object with major and classification
- * studentsCreate({studentsCreate({ name: "Big Mac", classification: "Sophomore", major: "Business", adminStatus: true});
+ * @example creates student object with name, major and classification
+ * studentsCreate({ studentTag: studentDiscordTag, name: "Big Mac", classification: "Sophomore", major: "Business", adminStatus: true});
  */
 const studentsCreate = async function ({
   studentTag,
@@ -28,20 +31,25 @@ const studentsCreate = async function ({
   courses = [],
 } = {}) {
   if (!studentTag) {
-    return (
-      'Error - studentTag must be included when using studentsCreate.' +
-      ' Also, make sure proper types passed for student attrubutes.'
-    );
+    return 'Error - studentTag must be included when using studentsCreate.';
   }
-
-  return await Student.create({
-    studentTag: studentTag,
-    name: name,
-    classification: classification,
-    major: major,
-    adminStatus: adminStatus,
-    courses: courses,
-  });
+  try {
+    return await Student.create({
+      studentTag: studentTag,
+      name: name,
+      classification: classification,
+      major: major,
+      adminStatus: adminStatus,
+      courses: courses,
+    });
+  } catch (err) {
+    console.log(
+      'Error creating student - Student Tag most likely already exists in DB'
+    );
+    // console.log(err);
+    console.log(String(err).slice(0, 200) + '...');
+    return null;
+  }
 };
 
 /**
@@ -50,7 +58,7 @@ const studentsCreate = async function ({
  * @return {List of Student Objects}
  *
  * @example returns student objects and passes them to a function
- * studentsReadAll().then(students => sendStudentsToBot(students));
+ * studentsReadAll().then(students => sendStudentsToBotOrSomething(students));
  */
 const studentsReadAll = async function () {
   return await Student.find()
@@ -77,7 +85,7 @@ const studentsReadAll = async function () {
  * @return {null}
  */
 const studentsDeleteAll = function () {
-  Student.remove({}, function (err) {
+  Student.deleteMany({}, function (err) {
     if (err) {
       console.log(err);
       return;
@@ -89,12 +97,13 @@ const studentsDeleteAll = function () {
 };
 
 /**
- * Returns a single student object given the student's id.
- * @param  {String} studentTag [description]
+ * Returns a single student object given the student's tag.
+ * @param  {String} studentTag
  * @return {Student object}
  *
  * @example printing a student
- * studentsReadOne("5f83a43e34c3da04908d4d89").then(student => console.log(student));
+ * const studentDiscordTag = message.member.user.tag;
+ * studentsReadOne(studentDiscordTag).then(student => console.log(student));
  */
 const studentsReadOne = function (studentTag) {
   if (studentTag) {
@@ -122,26 +131,26 @@ const studentsReadOne = function (studentTag) {
 
 /**
    * This function is the one handle all function for updating a student object.
-   * The only required paramater is the id of the student being updated.
-   * @param  {[type]}  studentId
+   * The only required paramater is the student tag of the student being updated.
+   * @param  {String}  studentTag                   REQUIRED
    * @param  {String}  [newStudentName=""]
    * @param  {String}  [newStudentClassification=""]
    * @param  {String}  [newStudentMajor=""]
    * @param  {Boolean} [toggleAdminStatus=false]    Toggle Admin status
    * @param  {Boolean} [deleteCourses=false]        Deletes all the courses in the "courses" array for student.
-   *                                                This will not delete the courses themselves
+   *                                                NOTE: This will not delete the courses themselves
    *
-   * @param  {[type]}  [courseToRemoveId=null]      Remove a single course from student's courses array
-   * @param  {[type]}  [courseToAddId=null]         Add a single course to the student's course array
+   * @param  {[type]}  [courseToRemove=""]      Remove a single course from student's courses array
+   * @param  {[type]}  [courseToAdd=""]         Add a single course to the student's course array
 
    * @return {Student Object}                       Returns the updated student object
    *
-   * @example student's name changed, admin status toggled, course is removed w/id "5f83a24bafc3b703ecde8c42"
+   * @example student's name changed, admin status toggled, course "CS 1400" is removed from student courses"
    *       studentsUpdateOne({
-             studentId: "5f83a43e34c3da04908d4d89",
+             studentTag: studentTagVariable,
              newStudentName: "Big Pack",
              toggleAdminStatus: true,
-             courseToRemoveId: "5f83a24bafc3b703ecde8c42",
+             courseToRemove: "CS 1400",
            });
    *
    */
@@ -152,8 +161,8 @@ const studentsUpdateOne = function ({
   newStudentMajor = '',
   toggleAdminStatus = false,
   deleteCourses = false,
-  courseToRemoveId = '',
-  courseToAddId = '',
+  courseToRemove = '',
+  courseToAdd = '',
 } = {}) {
   if (!studentTag) {
     console.log('Error - Student Tag must be passed to studentsUpdateOne');
@@ -182,57 +191,80 @@ const studentsUpdateOne = function ({
       foundStudent.courses = [];
     }
 
-    if (courseToRemoveId) {
+    if (courseToRemove) {
       try {
-        foundStudent.courses.pull({
-          _id: mongoose.Types.ObjectId(courseToRemoveId),
+        coursesReadOne(courseToRemove).then((foundCourse) => {
+          if (foundCourse) {
+            foundStudent.courses.pull({ _id: foundCourse._id });
+
+            foundStudent.save(function (err, updatedStudent) {
+              if (err) {
+                console.log(err);
+                return -1;
+              } else {
+                console.log('Removed Course: (if course existed in array)');
+                console.log(updatedStudent);
+              }
+            });
+          }
         });
       } catch (err) {
         console.log(
-          'Error removing course from student courses - Make sure string of course id passed and valid id'
+          "Error removing course from a student's courses in studentsUpdateOne"
         );
+        console.log(err);
         return -1;
       }
     }
 
-    if (mongoose.Types.ObjectId.isValid(courseToAddId)) {
-      try {
-        foundStudent.courses.push({
-          _id: mongoose.Types.ObjectId(courseToAddId),
-        });
-        // foundStudent.courses.push(courseToAddId);
-      } catch (err) {
-        console.log(
-          'Error - Make sure string of the course id passed and valid id'
-        );
-        return -1;
-      }
+    if (courseToAdd) {
+      // find the course in DB and then pass id to push
+      coursesReadOne(courseToAdd).then((foundCourse) => {
+        if (foundCourse) {
+          foundStudent.courses.addToSet(foundCourse._id);
+
+          foundStudent.save(function (err, updatedStudent) {
+            if (err) {
+              console.log(err);
+              return -1;
+            } else {
+              console.log("Added Course: (if course wasn't already in array)");
+              console.log(updatedStudent);
+            }
+          });
+        } else {
+          console.log('Course does not  exist: ' + courseToAdd);
+        }
+      });
     }
 
-    foundStudent.save().then(function (updatedStudent) {
-      console.log(updatedStudent);
-      return 0;
-    });
+    if (!courseToAdd && !courseToRemove) {
+      foundStudent.save().then(function (updatedStudent) {
+        console.log(updatedStudent);
+        return 0;
+      });
+    }
   });
 };
 
 /**
- * Deletes a single student object from student collection.
- * @param  {String} studentId
+ * Deletes a single student object from student collection. If course doesn't
+ * exist, it will still print "Student Deleted".
+ * @param  {String} studentTag
  * @return {null}
  */
-const studentsDeleteOne = function (studentId) {
-  if (!mongoose.Types.ObjectId.isValid(studentId)) {
-    console.log('Error - Invalid Student ID passed to studentsDeleteOne');
+const studentsDeleteOne = function (studentTag) {
+  if (!studentTag) {
+    console.log('Error - Student Tag must be passed in studentsDeleteOne');
     return;
   }
 
-  Student.findByIdAndRemove(studentId).exec((err, deletedStudent) => {
+  Student.deleteOne({ studentTag: studentTag }).exec((err, deletedStudent) => {
     if (err) {
       return err;
     } else if (!deletedStudent) {
       console.log(
-        "StudentId doesn't exist. Cannot remove student which doesn't exist."
+        "StudentTag doesn't exist. Cannot remove student which doesn't exist."
       );
     } else {
       console.log('Student Deleted');
