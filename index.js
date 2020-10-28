@@ -27,7 +27,6 @@ bot.once('ready', () => {
 k
 //I tried to re-create this functionality without creating a command but  finding a user based on their tag requires a message that they have not yet given.
 bot.once('startup', () => {
-  /*
   message.channel.send('Welcome to RaiderMatcher!');
   message.channel.send('To begin, enter: \"!add-student FirstName LastName\" (e.g. !add-student James Bond)');
   message.channel.send('To set your major, enter: \"!add-major Major\" (e.g. !add-major Computer Science)');
@@ -35,8 +34,6 @@ bot.once('startup', () => {
   message.channel.send('To add courses to your schedule, enter: \"!add-courses School CourseNumber\" (e.g. !add-courses CS 1411)');
   message.channel.send('For further help, enter: \"!help\" (e.g. !help)');
   message.channel.send('For help with a specific command, enter: \"!help Command\" (e.g. !help add-user)');
-  */
-  initialStart.execute();
 });
 
 bot.on('message', (message) => {
