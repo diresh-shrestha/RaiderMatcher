@@ -14,7 +14,7 @@ const Course = require('../models/Course');
 module.exports = {
   name: 'add-courses',
   description: 'Add courses to the database',
-  aliases: ['addcourses', 'addCourses', 'addcourses'],
+  aliases: ['addcourses', 'addCourses', 'Addcourses', 'addcourse', 'addCourse', 'Addcourse'],
   args: true,
   execute(message, args) {
     const course = args.join(' ');
