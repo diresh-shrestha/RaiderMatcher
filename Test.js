@@ -23,9 +23,9 @@ const studentsDeleteAll = ctrlStudent.studentsDeleteAll;
 const studentsReadOne = ctrlStudent.studentsReadOne;
 const studentsUpdateOne = ctrlStudent.studentsUpdateOne;
 const studentsDeleteOne = ctrlStudent.studentsDeleteOne;
+const studentsUpdateAnswers = ctrlStudent.studentsUpdateAnswers;
+
 // COURSES TESTING
-
-
 const create_courses = function() {
   // CREATE COURSES
   // Create Course without anything (should return error)
@@ -84,7 +84,7 @@ const updateTests = function() {
 
 // Read All SUCCESS
 studentsReadAll().then(response => (console.log("All Students: \n" + response)));
-coursesReadAll().then(response => (console.log("All courses: \n" + response)));
+// coursesReadAll().then(response => (console.log("All courses: \n" + response)));
 
 // All FAILURE
 // updateTests();
@@ -105,3 +105,6 @@ coursesReadAll().then(response => (console.log("All courses: \n" + response)));
 // Delete all students and courses SUCCESS
 // studentsDeleteAll();
 // coursesDeleteAll();
+
+// Test updated answers
+// studentsUpdateAnswers('DISCORDID1', ["Answer 1", "Answer 2"]);
