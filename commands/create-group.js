@@ -22,10 +22,27 @@ module.exports = {
   	if (!message.guild.channels.cache
   			.some((channel) => channel.name === channelName)) {
 
-  		// Creates the new channel if it doesn't exist
+  		// Creates the new channel if it doesn't exist, and locks all users out of channel
   		message.guild.channels
   			.create(channelName, {reason: 'A new group has been formed!',
-  									type: 'text'});
+  									type: 'text',
+  					permissionOverwrites: [{
+  										   	id: message.guild.id,
+  										   	deny: ['VIEW_CHANNEL', 'SEND_MESSAGES']
+  										   }]
+  			})
+  			.then(r => {
+
+  				// Explicitly allows the message author to use the channel
+  				r.updateOverwrite(message.author.id, { 'VIEW_CHANNEL': true,
+  													   'SEND_MESSAGES': true });
+
+  				// Explicitly allows those mentioned to use the channel
+  				for (i in names) {
+  					r.updateOverwrite(i.id, { 'VIEW_CHANNEL': true,
+  											  'SEND_MESSAGES': true });
+  				};
+  			});
 
   		// Tell group their channel name
   		message.channel.send('Your group has been formed and ' +
