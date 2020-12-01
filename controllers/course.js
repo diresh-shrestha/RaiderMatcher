@@ -94,6 +94,7 @@ const coursesReadOne = function (course) {
     return -1;
   }
 
+  // console.log(course);
   const conditions = { course: course.toUpperCase() };
 
   return (

@@ -38,7 +38,7 @@ module.exports = {
   													   'SEND_MESSAGES': true });
 
   				// Explicitly allows those mentioned to use the channel
-  				for (i in names) {
+  				for (i of names) {
   					r.updateOverwrite(i.id, { 'VIEW_CHANNEL': true,
   											  'SEND_MESSAGES': true });
   				};

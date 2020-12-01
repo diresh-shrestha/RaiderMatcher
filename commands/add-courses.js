@@ -18,6 +18,8 @@ module.exports = {
   args: true,
   execute(message, args) {
     const course = args.join(' ');
+    console.log(course);
+    console.log(typeof course);
     const channel = `${args[0]}-${args[1]}`;
     const studentTag = message.member.user.tag;
     // get the Courses channel category
@@ -61,14 +63,14 @@ module.exports = {
     );
 
     studentsReadOne(studentTag).then((foundStudent) => {
-      coursesReadOne({ course })
+      coursesReadOne(course)
         .then((foundCourse) => {
           // const role = message.guild.roles.find(role => role.name === foundCourse.courseName);
           if (!foundCourse) {
             coursesCreate({ course })
               .then((createdCourse) => {
                 // add course to student courses array
-                studentsReadOne({ studentTag }).then((res) => console.log(res));
+                studentsReadOne(studentTag).then((res) => console.log(res));
 
                 // add student to course students array
                 coursesUpdateOne({
